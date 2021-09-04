@@ -2,9 +2,7 @@ package conf
 
 var SiteHost = env("SITE_HOST", nil)
 
-var DbDriver = env("DB_DRIVER", strPtr("postgres"))
-var DbSource = env("DB_SOURCE", nil)
-
+var DbDsn = env("DB_SOURCE", nil)
 var KvAddr = env("KV_ADDR", strPtr("localhost:6379"))
 var KvPassword = env("KV_PASSWORD", strPtr(""))
 var KvDb = envInt("KV_DB", intPtr(0))

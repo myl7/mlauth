@@ -6,7 +6,7 @@ import (
 )
 
 func getDb() (*sqlx.DB, error) {
-	db, err := sqlx.Connect(conf.DbDriver, conf.DbSource)
+	db, err := sqlx.Connect("postgres", conf.DbDsn)
 	if err != nil {
 		return nil, err
 	} else {

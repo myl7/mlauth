@@ -113,5 +113,10 @@ func userAuth(c *gin.Context) {
 		return
 	}
 
+	if !u.IsActive {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+
 	c.Set("user", u)
 }

@@ -8,9 +8,12 @@ func Run() error {
 
 	api.POST("/users/login", userLogin)
 	api.POST("/users/renew", userRenew)
+	api.POST("/users", userRegister)
 
 	authed := api.Group("/")
 	authed.Use(userAuth)
+	authed.GET("/users/me", userGet)
+	authed.PUT("/users/me", userEdit)
 
 	err := r.Run()
 	if err != nil {

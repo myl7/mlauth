@@ -53,7 +53,7 @@ func SetEmailEditEmail(uid int, email string, code string) error {
 
 	kv := getKv()
 	k := "email-edit-email/" + code
-	err = kv.Set(context.Background(), k, b, time.Duration(conf.UserActiveEmailAge)*time.Second).Err()
+	err = kv.Set(context.Background(), k, b, time.Duration(conf.EmailEditEmailAge)*time.Second).Err()
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func GetEmailEditEmail(code string) (int, string, error) {
 func SetEmailRetry(sub string, uid int) error {
 	kv := getKv()
 	k := fmt.Sprintf("email-retry/%s/%d", sub, uid)
-	err := kv.Set(context.Background(), k, "1", time.Duration(conf.UserActiveEmailRetryInterval)*time.Second).Err()
+	err := kv.Set(context.Background(), k, "1", time.Duration(conf.EmailRetryInterval)*time.Second).Err()
 	if err != nil {
 		return err
 	}

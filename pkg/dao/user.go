@@ -41,7 +41,7 @@ func UpdateUser(uid int, uEdit mdl.User) (mdl.User, error) {
 	}
 
 	u := mdl.User{}
-	sql := `UPDATE users SET display_name = :display_name, password = :password, email = :email
+	sql := `UPDATE users SET display_name = :display_name, password = :password, email = :email, is_active = :is_active
         WHERE uid = $1 RETURNING *`
 	err = db.Get(&u, sql, uid, uEdit)
 	if err != nil {

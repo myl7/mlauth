@@ -100,6 +100,34 @@ func userRenew(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+type userRecoverReq struct {
+	Username string `json:"username" validate:"max=255,min=2,alphanum"`
+}
+
+func userRecover(c *gin.Context) {
+	req := userRecoverReq{}
+	err := c.Bind(&req)
+	if err != nil {
+		return
+	}
+
+	u, err := dao.SelectUserByUsername(req.Username)
+	if err != nil {
+		c.Status(http.StatusOK)
+		return
+	}
+
+	err = dao.SetEmailRetry("user-recover", u.Uid)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Email request too often")
+		return
+	}
+
+	go func() {}() // TODO
+
+	c.Status(http.StatusOK)
+}
+
 func userAuth(c *gin.Context) {
 	u, err := getUserInAuth(c)
 	if err != nil {

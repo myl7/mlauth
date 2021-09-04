@@ -10,6 +10,8 @@ func Run() error {
 	api.POST("/users/renew", userRenew)
 	api.POST("/users", userRegister)
 
+	api.POST("/emails/active", emailActive)
+
 	authed := api.Group("/")
 	authed.Use(userAuth)
 	authed.GET("/users/me", userGet)

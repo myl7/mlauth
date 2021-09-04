@@ -66,6 +66,10 @@ func userRegister(c *gin.Context) {
 		return
 	}
 
+	go func() {
+		_ = srv.ReqUserActive(u)
+	}()
+
 	c.JSON(http.StatusOK, userMdl2userDetail(u))
 }
 

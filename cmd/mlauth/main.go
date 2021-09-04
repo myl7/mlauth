@@ -1,18 +1,13 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
 	"log"
 	"mlauth/pkg/api"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalln("Failed to load dotenv:", err.Error())
-	}
-
-	err = api.Run()
+	err := api.Run()
 	if err != nil {
 		log.Fatalln("Failed to start API server:", err.Error())
 	}

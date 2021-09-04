@@ -66,7 +66,7 @@ func userRegister(c *gin.Context) {
 		return
 	}
 
-	if !dao.CheckUserActiveEmailRetry(u.Uid) {
+	if !dao.CheckEmailRetry("user-active", u.Uid) {
 		c.String(http.StatusBadRequest, "Email request too often")
 		return
 	}

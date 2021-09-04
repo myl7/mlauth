@@ -28,7 +28,7 @@ func emailActive(c *gin.Context) {
 func emailActiveRetry(c *gin.Context) {
 	u := c.MustGet("user").(mdl.User)
 
-	if !dao.CheckUserActiveEmailRetry(u.Uid) {
+	if !dao.CheckEmailRetry("user-active", u.Uid) {
 		c.String(http.StatusBadRequest, "Email request too often")
 		return
 	}

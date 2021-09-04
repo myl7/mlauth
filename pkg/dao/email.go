@@ -35,9 +35,9 @@ func GetUserActiveEmail(code string) (int, error) {
 	return d, nil
 }
 
-func SetUserActiveEmailRetry(uid int) error {
+func SetEmailRetry(sub string, uid int) error {
 	kv := getKv()
-	k := fmt.Sprintf("user-active-email-retry/%d", uid)
+	k := fmt.Sprintf("email-retry/%s/%d", sub, uid)
 	err := kv.Set(context.Background(), k, "1", time.Duration(conf.UserActiveEmailRetryInterval)*time.Second).Err()
 	if err != nil {
 		return err
@@ -46,9 +46,9 @@ func SetUserActiveEmailRetry(uid int) error {
 	return nil
 }
 
-func CheckUserActiveEmailRetry(uid int) bool {
+func CheckEmailRetry(sub string, uid int) bool {
 	kv := getKv()
-	k := fmt.Sprintf("user-active-email-retry/%d", uid)
+	k := fmt.Sprintf("email-retry/%s/%d", sub, uid)
 	err := kv.Get(context.Background(), k).Err()
 	return err != nil
 }

@@ -3,6 +3,7 @@ package conf
 import (
 	"errors"
 	"fmt"
+	_ "github.com/joho/godotenv/autoload"
 	"os"
 	"strconv"
 )

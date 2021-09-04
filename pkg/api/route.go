@@ -2,7 +2,7 @@ package api
 
 import "github.com/gin-gonic/gin"
 
-func Run() error {
+func Route() *gin.Engine {
 	r := gin.Default()
 	api := r.Group("/api")
 
@@ -21,10 +21,5 @@ func Run() error {
 	authed.GET("/users/me", userGet)
 	authed.PUT("/users/me", userEdit)
 
-	err := r.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return r
 }

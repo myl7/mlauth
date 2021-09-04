@@ -1,0 +1,10 @@
+CREATE TABLE users (
+  uid SERIAL,
+  username VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  display_name VARCHAR(255) NOT NULL,
+  is_active BOOLEAN NOT NULL,
+  is_super BOOLEAN NOT NULL,
+  created_at TIMESTAMP NOT NULL
+);

@@ -134,6 +134,26 @@ func ReqEmailEdit(u mdl.User, email string) error {
 	return nil
 }
 
+func RunEmailEdit(code string) error {
+	uid, email, err := dao.GetEmailEditEmail(code)
+	if err != nil {
+		return err
+	}
+
+	uEdit, err := dao.SelectUser(uid)
+	if err != nil {
+		return err
+	}
+
+	uEdit.Email = email
+	_, err = dao.UpdateUser(uid, uEdit)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func genEmailEditCode(uid int, email string) (string, error) {
 	d, err := uuid.NewUUID()
 	if err != nil {

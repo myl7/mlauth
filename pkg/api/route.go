@@ -13,7 +13,6 @@ func Run() error {
 	api.POST("/emails/active", emailActive)
 	api.POST("/emails/active/retry", userAuthExist, emailActiveRetry)
 	api.POST("/emails/change-email", emailChange)
-	api.POST("/emails/change-email", userAuth, emailChangeRetry)
 
 	authed := api.Group("/")
 	authed.Use(userAuth)

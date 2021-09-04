@@ -39,3 +39,20 @@ func emailActiveRetry(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+func emailChange(c *gin.Context) {
+	errMsg := "Failed to change email"
+	code, ok := c.GetQuery("verify-code")
+	if !ok {
+		c.String(http.StatusBadRequest, errMsg)
+		return
+	}
+
+	err := srv.RunEmailEdit(code)
+	if err != nil {
+		c.String(http.StatusBadRequest, errMsg)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

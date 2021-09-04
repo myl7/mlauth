@@ -115,6 +115,92 @@ func sendUserActiveEmail(u mdl.User, activeCode string) error {
 	return nil
 }
 
+func ReqEmailEdit(u mdl.User, email string) error {
+	err := dao.SetEmailRetry("email-edit", u.Uid)
+	if err != nil {
+		return err
+	}
+
+	code, err := genEmailEditCode(u.Uid, email)
+	if err != nil {
+		return err
+	}
+
+	err = sendEmailEditEmail(u, code, email)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func genEmailEditCode(uid int, email string) (string, error) {
+	d, err := uuid.NewUUID()
+	if err != nil {
+		return "", err
+	}
+
+	code := d.String()
+	err = dao.SetEmailEditEmail(uid, email, code)
+	if err != nil {
+		return "", err
+	}
+
+	return code, nil
+}
+
+func sendEmailEditEmail(u mdl.User, verifyCode string, email string) error {
+	p, err := url.Parse(conf.SiteHost)
+	if err != nil {
+		return err
+	}
+
+	p.Path = "/emails/change-email"
+	q := p.Query()
+	q.Set("verify-code", verifyCode)
+	p.RawQuery = q.Encode()
+	link := p.String()
+
+	h := hermes.Hermes{
+		Product: hermes.Product{
+			Name: "mlauth",
+			Link: conf.SiteHost,
+		},
+	}
+	e := hermes.Email{
+		Body: hermes.Body{
+			Name: u.DisplayName,
+			Intros: []string{
+				"You have received this email because the account using the email address on mlauth is going to change to another email address",
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Click the button below to confirm and perform the email address change:",
+					Button: hermes.Button{
+						Text: "Confirm your change",
+						Link: link,
+					},
+				},
+			},
+			Outros: []string{
+				"If you did not request a email address change, no further action is required on your part.",
+			},
+			Signature: "mlauth, Copyright © 2021 myl7, source code is licensed under MIT",
+		},
+	}
+	body, err := h.GenerateHTML(e)
+	if err != nil {
+		return err
+	}
+
+	err = sendEmail([]string{email}, body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func sendEmail(to []string, body string) error {
 	auth := smtp.PlainAuth("", conf.SmtpUsername, conf.SmtpPassword, conf.SmtpHost)
 	addr := fmt.Sprintf("%s:%d", conf.SmtpHost, conf.SmtpPort)

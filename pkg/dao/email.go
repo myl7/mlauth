@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"mlauth/pkg/conf"
 	"strconv"
@@ -33,6 +34,48 @@ func GetUserActiveEmail(code string) (int, error) {
 	}
 
 	return d, nil
+}
+
+type emailEditEmailBody struct {
+	Uid   int    `json:"uid"`
+	Email string `json:"email"`
+}
+
+func SetEmailEditEmail(uid int, email string, code string) error {
+	body := emailEditEmailBody{
+		Uid:   uid,
+		Email: email,
+	}
+	b, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	kv := getKv()
+	k := "email-edit-email/" + code
+	err = kv.Set(context.Background(), k, b, time.Duration(conf.UserActiveEmailAge)*time.Second).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetEmailEditEmail(code string) (int, string, error) {
+	kv := getKv()
+	k := "user-active-email/" + code
+	v, err := kv.GetDel(context.Background(), k).Result()
+	if err != nil {
+		return 0, "", err
+	}
+
+	body := emailEditEmailBody{}
+	err = json.Unmarshal([]byte(v), &body)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return body.Uid, body.Email, nil
 }
 
 func SetEmailRetry(sub string, uid int) error {

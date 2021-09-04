@@ -36,7 +36,14 @@ func userEdit(c *gin.Context) {
 		uEdit.Password = pwd
 	}
 	if req.Email != "" {
-		// TODO
+		if !dao.CheckEmailRetry("email-edit", uPre.Uid) {
+			c.String(http.StatusBadRequest, "Email request too often")
+			return
+		}
+
+		go func() {
+			_ = srv.ReqEmailEdit(uPre, req.Email)
+		}()
 	}
 
 	u, err := dao.UpdateUser(uPre.Uid, uEdit)

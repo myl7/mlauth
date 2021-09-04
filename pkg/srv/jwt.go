@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	"mlauth/pkg/conf"
+	"strconv"
 	"time"
 )
 
 func genToken(uid int, exp int) (string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
-		"uid": uid,
+		"uid": strconv.Itoa(uid),
 		"exp": time.Now().Add(time.Duration(exp) * time.Second).Unix(),
 	})
 	token, err := t.SignedString(conf.SecretKey)
@@ -52,9 +53,14 @@ func checkToken(token string, exp int) (int, error) {
 		return 0, fmt.Errorf(claimsErrMsg)
 	}
 
-	uid, ok := u.(int)
+	us, ok := u.(string)
 	if !ok {
 		return 0, fmt.Errorf(claimsErrMsg)
+	}
+
+	uid, err := strconv.Atoi(us)
+	if err != nil {
+		return 0, err
 	}
 
 	e, ok := c["exp"]
@@ -62,12 +68,12 @@ func checkToken(token string, exp int) (int, error) {
 		return 0, fmt.Errorf(claimsErrMsg)
 	}
 
-	ed, ok := e.(int64)
+	ef, ok := e.(float64)
 	if !ok {
 		return 0, fmt.Errorf(claimsErrMsg)
 	}
 
-	et := time.Unix(ed, 0)
+	et := time.Unix(int64(ef), 0)
 	if time.Now().Sub(et).Seconds() > float64(exp) {
 		return 0, fmt.Errorf("token expired")
 	}

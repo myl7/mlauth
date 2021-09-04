@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"mlauth/pkg/conf"
 	"strconv"
 	"time"
@@ -32,4 +33,22 @@ func GetUserActiveEmail(code string) (int, error) {
 	}
 
 	return d, nil
+}
+
+func SetUserActiveEmailRetry(uid int) error {
+	kv := getKv()
+	k := fmt.Sprintf("user-active-email-retry/%d", uid)
+	err := kv.Set(context.Background(), k, "1", time.Duration(conf.UserActiveEmailRetryInterval)*time.Second).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CheckUserActiveEmailRetry(uid int) bool {
+	kv := getKv()
+	k := fmt.Sprintf("user-active-email-retry/%d", uid)
+	err := kv.Get(context.Background(), k).Err()
+	return err != nil
 }

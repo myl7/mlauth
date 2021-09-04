@@ -21,3 +21,4 @@ var SmtpUsername = env("SMTP_USERNAME", nil)
 var SmtpPassword = env("SMTP_PASSWORD", nil)
 
 var UserActiveEmailAge = envInt("USER_ACTIVE_EMAIL_AGE", intPtr(1*24*60*60))
+var UserActiveEmailRetryInterval = envInt("USER_ACTIVE_EMAIL_RETRY_INTERVAL", intPtr(1*60))

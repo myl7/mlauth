@@ -66,6 +66,11 @@ func userRegister(c *gin.Context) {
 		return
 	}
 
+	if !dao.CheckUserActiveEmailRetry(u.Uid) {
+		c.String(http.StatusBadRequest, "Email request too often")
+		return
+	}
+
 	go func() {
 		_ = srv.ReqUserActive(u)
 	}()

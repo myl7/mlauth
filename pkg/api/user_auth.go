@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"mlauth/pkg/dao"
+	"mlauth/pkg/mdl"
 	"mlauth/pkg/srv"
 	"net/http"
 )
@@ -100,16 +101,8 @@ func userRenew(c *gin.Context) {
 }
 
 func userAuth(c *gin.Context) {
-	at := c.GetHeader("x-access-token")
-	uid, err := srv.CheckAccessToken(at)
+	u, err := getUserInAuth(c)
 	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	u, err := dao.SelectUser(uid)
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
@@ -119,4 +112,30 @@ func userAuth(c *gin.Context) {
 	}
 
 	c.Set("user", u)
+}
+
+func userAuthExist(c *gin.Context) {
+	u, err := getUserInAuth(c)
+	if err != nil {
+		return
+	}
+
+	c.Set("user", u)
+}
+
+func getUserInAuth(c *gin.Context) (mdl.User, error) {
+	at := c.GetHeader("x-access-token")
+	uid, err := srv.CheckAccessToken(at)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return mdl.User{}, err
+	}
+
+	u, err := dao.SelectUser(uid)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return mdl.User{}, err
+	}
+
+	return u, nil
 }

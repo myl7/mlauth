@@ -12,6 +12,11 @@ import (
 )
 
 func ReqUserActive(u mdl.User) error {
+	err := dao.SetUserActiveEmailRetry(u.Uid)
+	if err != nil {
+		return err
+	}
+
 	code, err := genActiveCode(u.Uid)
 	if err != nil {
 		return err

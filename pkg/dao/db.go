@@ -2,6 +2,7 @@ package dao
 
 import (
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"mlauth/pkg/conf"
 )
 

@@ -21,7 +21,7 @@ type userLoginRes struct {
 
 func userLogin(c *gin.Context) {
 	req := userLoginReq{}
-	err := c.Bind(&req)
+	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}
@@ -69,7 +69,7 @@ type userRenewRes struct {
 
 func userRenew(c *gin.Context) {
 	req := userRenewReq{}
-	err := c.Bind(&req)
+	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}
@@ -106,7 +106,7 @@ type userRecoverReq struct {
 
 func userRecover(c *gin.Context) {
 	req := userRecoverReq{}
-	err := c.Bind(&req)
+	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}

@@ -40,7 +40,7 @@ type userRegisterReq struct {
 
 func userRegister(c *gin.Context) {
 	req := userRegisterReq{}
-	err := c.Bind(&req)
+	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}
@@ -87,7 +87,7 @@ type userEditReq struct {
 func userEdit(c *gin.Context) {
 	uPre := c.MustGet("user").(mdl.User)
 	req := userEditReq{}
-	err := c.Bind(&req)
+	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}

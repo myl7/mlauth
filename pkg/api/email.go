@@ -63,7 +63,7 @@ type emailRecoverReq struct {
 
 func emailRecover(c *gin.Context) {
 	req := emailRecoverReq{}
-	err := c.Bind(&req)
+	err := c.BindJSON(&req)
 	if err != nil {
 		return
 	}

@@ -5,35 +5,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"mlauth/pkg/conf"
-	"strconv"
 	"time"
 )
 
 func SetUserActiveEmail(uid int, code string) error {
-	kv := getKv()
-	k := "user-active-email/" + code
-	err := kv.Set(context.Background(), k, uid, time.Duration(conf.UserActiveEmailAge)*time.Second).Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return setUid("user-active-email", conf.UserActiveEmailAge, uid, code)
 }
 
 func GetUserActiveEmail(code string) (int, error) {
-	kv := getKv()
-	k := "user-active-email/" + code
-	v, err := kv.GetDel(context.Background(), k).Result()
-	if err != nil {
-		return 0, err
-	}
+	return getUid("user-active-email", code)
+}
 
-	d, err := strconv.Atoi(v)
-	if err != nil {
-		return 0, err
-	}
+func SetUserRecoverEmail(uid int, code string) error {
+	return setUid("user-recover-email", conf.UserRecoverEmailAge, uid, code)
+}
 
-	return d, nil
+func GetUserRecoverEmail(code string) (int, error) {
+	return getUid("user-recover-email", code)
 }
 
 type emailEditEmailBody struct {

@@ -14,7 +14,7 @@ func Run() error {
 	api.POST("/emails/active", emailActive)
 	api.POST("/emails/active/retry", userAuthExist, emailActiveRetry)
 	api.POST("/emails/change-email", emailChange)
-	// api.POST("/emails/recover", emailRecover)
+	api.POST("/emails/recover", emailRecover)
 
 	authed := api.Group("/")
 	authed.Use(userAuth)

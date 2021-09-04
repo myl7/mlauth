@@ -221,6 +221,112 @@ func sendEmailEditEmail(u mdl.User, verifyCode string, email string) error {
 	return nil
 }
 
+func ReqUserRecover(u mdl.User) error {
+	err := dao.SetEmailRetry("user-recover", u.Uid)
+	if err != nil {
+		return err
+	}
+
+	code, err := genUserRecoverCode(u.Uid)
+	if err != nil {
+		return err
+	}
+
+	err = sendUserRecoverEmail(u, code)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func RunUserRecover(code string, hash string) error {
+	uid, err := dao.GetUserRecoverEmail(code)
+	if err != nil {
+		return err
+	}
+
+	uEdit, err := dao.SelectUser(uid)
+	if err != nil {
+		return err
+	}
+
+	uEdit.Password = hash
+	_, err = dao.UpdateUser(uid, uEdit)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func genUserRecoverCode(uid int) (string, error) {
+	d, err := uuid.NewUUID()
+	if err != nil {
+		return "", err
+	}
+
+	code := d.String()
+	err = dao.SetUserRecoverEmail(uid, code)
+	if err != nil {
+		return "", err
+	}
+
+	return code, nil
+}
+
+func sendUserRecoverEmail(u mdl.User, recoverCode string) error {
+	p, err := url.Parse(conf.SiteHost)
+	if err != nil {
+		return err
+	}
+
+	p.Path = "/emails/recover"
+	q := p.Query()
+	q.Set("recover-code", recoverCode)
+	p.RawQuery = q.Encode()
+	link := p.String()
+
+	h := hermes.Hermes{
+		Product: hermes.Product{
+			Name: "mlauth",
+			Link: conf.SiteHost,
+		},
+	}
+	e := hermes.Email{
+		Body: hermes.Body{
+			Name: u.DisplayName,
+			Intros: []string{
+				"You have received this email because the account using the email address on mlauth is going to perform an account recovery",
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Click the button below to confirm the account recovery and reset the password:",
+					Button: hermes.Button{
+						Text: "Confirm your recovery",
+						Link: link,
+					},
+				},
+			},
+			Outros: []string{
+				"If you did not request an account recovery, no further action is required on your part.",
+			},
+			Signature: "mlauth, Copyright © 2021 myl7, source code is licensed under MIT",
+		},
+	}
+	body, err := h.GenerateHTML(e)
+	if err != nil {
+		return err
+	}
+
+	err = sendEmail([]string{u.Email}, body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func sendEmail(to []string, body string) error {
 	auth := smtp.PlainAuth("", conf.SmtpUsername, conf.SmtpPassword, conf.SmtpHost)
 	addr := fmt.Sprintf("%s:%d", conf.SmtpHost, conf.SmtpPort)

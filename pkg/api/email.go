@@ -56,3 +56,36 @@ func emailChange(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+type emailRecoverReq struct {
+	Password string `json:"password" validate:"omitempty,max=255,min=8"`
+}
+
+func emailRecover(c *gin.Context) {
+	req := emailRecoverReq{}
+	err := c.Bind(&req)
+	if err != nil {
+		return
+	}
+
+	errMsg := "Failed to reset the password"
+	code, ok := c.GetQuery("recover-code")
+	if !ok {
+		c.String(http.StatusBadRequest, errMsg)
+		return
+	}
+
+	pwd, err := srv.GenPwd(req.Password)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	err = srv.RunUserRecover(code, pwd)
+	if err != nil {
+		c.String(http.StatusBadRequest, errMsg)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

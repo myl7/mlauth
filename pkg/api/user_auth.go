@@ -123,7 +123,9 @@ func userRecover(c *gin.Context) {
 		return
 	}
 
-	go func() {}() // TODO
+	go func() {
+		_ = srv.ReqUserRecover(u)
+	}()
 
 	c.Status(http.StatusOK)
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func userLogin(t *testing.T, r *gin.Engine) (string, string) {
@@ -47,6 +48,8 @@ func TestUserLogin(t *testing.T) {
 func TestUserRenew(t *testing.T) {
 	r := api.Route()
 	at, ut := userLogin(t, r)
+	time.Sleep(1 * time.Second)
+
 	w := httptest.NewRecorder()
 	b, err := json.Marshal(gin.H{
 		"update_token": ut,

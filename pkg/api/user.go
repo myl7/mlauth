@@ -74,8 +74,6 @@ func userRegister(c *gin.Context) {
 		return
 	}
 
-	log.Println("Create uid", u.Uid)
-
 	go func() {
 		_ = srv.ReqUserActive(u)
 	}()

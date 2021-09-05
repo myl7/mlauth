@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches:
+      - goshujin-sama
+  pull_request:
+    branches:
+      - goshujin-sama
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    services:
+      pg:
+        image: postgres:alpine
+        env:
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17'
+      - run: go version
+      - name: Setup dotenv
+        run: |
+          mv test/.env-test test/.env
+          cp test/.env .
+      - name: Load SQL fixtures
+        run: go run tools/pg_load.go -sql test/data/fixtures.sql
+      - run: go test
+        working-directory: test

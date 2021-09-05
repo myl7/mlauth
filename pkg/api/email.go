@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"mlauth/pkg/dao"
 	"mlauth/pkg/mdl"
 	"mlauth/pkg/srv"
@@ -13,12 +14,14 @@ func emailActive(c *gin.Context) {
 	code, ok := c.GetQuery("active-code")
 	if !ok {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println("Failed to get user active code")
 		return
 	}
 
 	err := srv.RunUserActive(code)
 	if err != nil {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println(err.Error())
 		return
 	}
 
@@ -45,12 +48,14 @@ func emailChange(c *gin.Context) {
 	code, ok := c.GetQuery("verify-code")
 	if !ok {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println("Failed to get email edit code")
 		return
 	}
 
 	err := srv.RunEmailEdit(code)
 	if err != nil {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println(err.Error())
 		return
 	}
 
@@ -72,18 +77,21 @@ func emailRecover(c *gin.Context) {
 	code, ok := c.GetQuery("recover-code")
 	if !ok {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println("Failed to get user recover code")
 		return
 	}
 
 	pwd, err := srv.GenPwd(req.Password)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		log.Println(err.Error())
 		return
 	}
 
 	err = srv.RunUserRecover(code, pwd)
 	if err != nil {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println(err.Error())
 		return
 	}
 

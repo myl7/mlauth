@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"mlauth/pkg/dao"
 	"mlauth/pkg/mdl"
 	"mlauth/pkg/srv"
@@ -48,6 +49,7 @@ func userRegister(c *gin.Context) {
 	pwd, err := srv.GenPwd(req.Password)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		log.Println(err.Error())
 		return
 	}
 
@@ -63,6 +65,7 @@ func userRegister(c *gin.Context) {
 	u, err := dao.InsertUser(uCreate)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		log.Println(err.Error())
 		return
 	}
 
@@ -100,6 +103,7 @@ func userEdit(c *gin.Context) {
 		pwd, err := srv.GenPwd(req.Password)
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
+			log.Println(err.Error())
 			return
 		}
 
@@ -119,6 +123,7 @@ func userEdit(c *gin.Context) {
 	u, err := dao.UpdateUser(uPre.Uid, uEdit)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		log.Println(err.Error())
 		return
 	}
 

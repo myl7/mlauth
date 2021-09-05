@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"mlauth/pkg/dao"
 	"mlauth/pkg/mdl"
 	"mlauth/pkg/srv"
@@ -30,23 +31,27 @@ func userLogin(c *gin.Context) {
 	u, err := dao.SelectUserByUsername(req.Username)
 	if err != nil {
 		c.String(http.StatusForbidden, errMsg)
+		log.Println(err.Error())
 		return
 	}
 
 	if !srv.CheckPwd(u.Password, req.Password) {
 		c.String(http.StatusForbidden, errMsg)
+		log.Println("Password mismatch")
 		return
 	}
 
 	at, err := srv.GenAccessToken(u.Uid)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		log.Println(err.Error())
 		return
 	}
 
 	ut, err := srv.GenUpdateToken(u.Uid)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		log.Println(err.Error())
 		return
 	}
 
@@ -78,18 +83,21 @@ func userRenew(c *gin.Context) {
 	uid, err := srv.CheckUpdateToken(req.UpdateToken)
 	if err != nil {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println(err.Error())
 		return
 	}
 
 	u, err := dao.SelectUser(uid)
 	if err != nil {
 		c.String(http.StatusBadRequest, errMsg)
+		log.Println(err.Error())
 		return
 	}
 
 	at, err := srv.GenAccessToken(u.Uid)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		log.Println(err.Error())
 		return
 	}
 
@@ -114,6 +122,7 @@ func userRecover(c *gin.Context) {
 	u, err := dao.SelectUserByUsername(req.Username)
 	if err != nil {
 		c.Status(http.StatusOK)
+		log.Println(err.Error())
 		return
 	}
 

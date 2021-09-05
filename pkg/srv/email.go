@@ -37,6 +37,8 @@ func RunUserActive(code string) error {
 		return err
 	}
 
+	log.Println("Get uid", uid)
+
 	uEdit, err := dao.SelectUser(uid)
 	if err != nil {
 		return err
@@ -57,6 +59,8 @@ func genActiveCode(uid int) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	log.Println("Gen code uid", uid)
 
 	code := d.String()
 	err = dao.SetUserActiveEmail(uid, code)

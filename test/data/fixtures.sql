@@ -6,3 +6,5 @@ VALUES (1, 'testusername', '$2a$12$0Ew1ypxmezSM0YV9TQJe8.kygAS8XFGBYvnCXkVv.mi3v
        (2, 'anotherusername', '$2a$12$rZ.iRNlhtM9UUzk89hUoKedVVw6yy4LgRRIu75R1OYO913KPfBKSu',
         'anotheremail@mail.ustc.edu.cn', 'test display name', TRUE, FALSE,
         '2021-07-08 00:00:00');
+SELECT pg_catalog.SETVAL(PG_GET_SERIAL_SEQUENCE('users', 'uid'), MAX(uid))
+FROM users;

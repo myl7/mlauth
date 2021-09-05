@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
 func userLogin(t *testing.T, r *gin.Engine) (string, string) {
@@ -47,9 +46,7 @@ func TestUserLogin(t *testing.T) {
 
 func TestUserRenew(t *testing.T) {
 	r := api.Route()
-	at, ut := userLogin(t, r)
-	time.Sleep(1 * time.Second)
-
+	_, ut := userLogin(t, r)
 	w := httptest.NewRecorder()
 	b, err := json.Marshal(gin.H{
 		"update_token": ut,
@@ -69,5 +66,4 @@ func TestUserRenew(t *testing.T) {
 	err = json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
 	assert.Equal(t, ut, body.UpdateToken)
-	assert.NotEqual(t, at, body.AccessToken)
 }

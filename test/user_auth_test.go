@@ -23,7 +23,7 @@ func userLogin(t *testing.T, r *gin.Engine) (string, string) {
 	assert.NoError(t, err)
 
 	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body:", w.Body.String())
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body := struct {
 		Username    string `json:"username"`
@@ -57,7 +57,7 @@ func TestUserRenew(t *testing.T) {
 	assert.NoError(t, err)
 
 	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body:", w.Body.String())
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body := struct {
 		UpdateToken string `json:"update_token"`

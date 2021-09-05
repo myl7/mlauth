@@ -26,7 +26,7 @@ func TestUserGet(t *testing.T) {
 
 	req.Header.Set("x-access-token", at)
 	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body:", w.Body.String())
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body := struct {
 		Uid         int       `json:"uid"`
@@ -64,7 +64,7 @@ func TestUserRegister(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body:", w.Body.String())
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body := struct {
 		Uid         int       `json:"uid"`
@@ -108,7 +108,7 @@ func TestUserRegister(t *testing.T) {
 
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body:", w.Body.String())
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	req, err = http.NewRequest("GET", "/api/users/me", nil)
 	assert.NoError(t, err)
@@ -124,7 +124,7 @@ func TestUserRegister(t *testing.T) {
 	assert.NoError(t, err)
 
 	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body:", w.Body.String())
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body2 := struct {
 		Username    string `json:"username"`
@@ -145,7 +145,7 @@ func TestUserRegister(t *testing.T) {
 
 	req.Header.Set("x-access-token", at)
 	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body:", w.Body.String())
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body3 := struct {
 		Uid         int       `json:"uid"`

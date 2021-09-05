@@ -22,3 +22,5 @@ var UserActiveEmailAge = envInt("USER_ACTIVE_EMAIL_AGE", intPtr(1*24*60*60))
 var EmailEditEmailAge = envInt("EMAIL_EDIT_EMAIL_AGE", intPtr(1*24*60*60))
 var UserRecoverEmailAge = envInt("USER_RECOVER_EMAIL_AGE", intPtr(1*24*60*60))
 var EmailRetryInterval = envInt("EMAIL_RETRY_INTERVAL", intPtr(1*60))
+
+var MockSendEmail = env("MOCK_SEND_EMAIL", strPtr(""))

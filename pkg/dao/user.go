@@ -1,6 +1,9 @@
 package dao
 
-import "mlauth/pkg/mdl"
+import (
+	"fmt"
+	"mlauth/pkg/mdl"
+)
 
 func SelectUser(uid int) (mdl.User, error) {
 	db, err := getDb()
@@ -35,6 +38,7 @@ func SelectUserByUsername(username string) (mdl.User, error) {
 }
 
 func UpdateUser(uid int, uEdit mdl.User) (mdl.User, error) {
+	uEdit.Uid = uid
 	db, err := getDb()
 	if err != nil {
 		return mdl.User{}, err
@@ -42,8 +46,17 @@ func UpdateUser(uid int, uEdit mdl.User) (mdl.User, error) {
 
 	u := mdl.User{}
 	sql := `UPDATE users SET display_name = :display_name, password = :password, email = :email, is_active = :is_active
-        WHERE uid = $1 RETURNING *`
-	err = db.Get(&u, sql, uid, uEdit)
+        WHERE uid = :uid RETURNING *`
+	rows, err := db.NamedQuery(sql, uEdit)
+	if err != nil {
+		return mdl.User{}, err
+	}
+
+	if !rows.Next() {
+		return mdl.User{}, fmt.Errorf("no return values")
+	}
+
+	err = rows.StructScan(&u)
 	if err != nil {
 		return mdl.User{}, err
 	}
@@ -60,7 +73,16 @@ func InsertUser(uCreate mdl.User) (mdl.User, error) {
 	u := mdl.User{}
 	sql := `INSERT INTO users (username, password, email, display_name, is_active, is_super, created_at)
         VALUES (:username, :password, :email, :display_name, :is_active, :is_super, :created_at) RETURNING *`
-	err = db.Get(&u, sql, uCreate)
+	rows, err := db.NamedQuery(sql, uCreate)
+	if err != nil {
+		return mdl.User{}, err
+	}
+
+	if !rows.Next() {
+		return mdl.User{}, fmt.Errorf("no return values")
+	}
+
+	err = rows.StructScan(&u)
 	if err != nil {
 		return mdl.User{}, err
 	}

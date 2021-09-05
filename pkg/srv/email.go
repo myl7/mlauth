@@ -327,7 +327,15 @@ func sendUserRecoverEmail(u mdl.User, recoverCode string) error {
 	return nil
 }
 
+var SendEmailMockChan = make(chan string, 2)
+
 func sendEmail(to []string, body string) error {
+	if conf.MockSendEmail != "" {
+		SendEmailMockChan <- to[0]
+		SendEmailMockChan <- body
+		return nil
+	}
+
 	auth := smtp.PlainAuth("", conf.SmtpUsername, conf.SmtpPassword, conf.SmtpHost)
 	addr := fmt.Sprintf("%s:%d", conf.SmtpHost, conf.SmtpPort)
 	err := smtp.SendMail(addr, auth, conf.SmtpSender, to, []byte(body))

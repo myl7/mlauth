@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/matcornic/hermes/v2"
-	"log"
 	"mlauth/pkg/conf"
 	"mlauth/pkg/dao"
 	"mlauth/pkg/mdl"
@@ -43,7 +42,6 @@ func RunUserActive(code string) error {
 	}
 
 	uEdit.IsActive = true
-	log.Println(uEdit)
 	_, err = dao.UpdateUser(uid, uEdit)
 	if err != nil {
 		return err

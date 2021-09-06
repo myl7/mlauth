@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/myl7/mlauth/pkg/rpc";
+
+service UserService {
+  rpc GetUser(GetUserReq) returns (GetUserRes) {}
+}
+
+message GetUserReq {
+  int32 uid = 1;
+}
+
+message GetUserRes {
+  int32 uid = 1;
+  string email = 2;
+  string display_name = 3;
+}

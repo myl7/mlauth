@@ -17,3 +17,4 @@
 # Dev
 .idea/
 .env
+*.pb.go

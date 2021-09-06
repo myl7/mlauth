@@ -200,3 +200,82 @@ func TestUserEditExceptEmail(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 }
+
+func TestUserEditEmail(t *testing.T) {
+	r := api.Route()
+	at, _ := userLogin(t, r, "username3", "password3")
+	b, err := json.Marshal(gin.H{
+		"email": "tellmeyouremail@outlook.com",
+	})
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("PUT", "/api/users/me", bytes.NewReader(b))
+	assert.NoError(t, err)
+
+	req.Header.Set("x-access-token", at)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
+
+	body := struct {
+		Uid         int       `json:"uid"`
+		Username    string    `json:"username"`
+		Email       string    `json:"email"`
+		DisplayName string    `json:"display_name"`
+		IsActive    bool      `json:"is_active"`
+		CreatedAt   time.Time `json:"created_at"`
+	}{}
+	err = json.Unmarshal(w.Body.Bytes(), &body)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, body.Uid)
+	assert.Equal(t, "hello@qq.com", body.Email)
+
+	var email, emailBody string
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	select {
+	case email = <-srv.SendEmailMockChan:
+	case <-ctx.Done():
+		assert.NotEmpty(t, email, "Can not get email")
+	}
+	cancel()
+	ctx, cancel = context.WithTimeout(context.Background(), 1*time.Second)
+	select {
+	case emailBody = <-srv.SendEmailMockChan:
+	case <-ctx.Done():
+		assert.NotEmpty(t, emailBody, "Can not get email body")
+	}
+	cancel()
+	assert.Equal(t, "tellmeyouremail@outlook.com", email)
+
+	re := regexp.MustCompile(`/emails/change-email/?\?verify-code=[0-9a-z-]+`)
+	p := re.Find([]byte(emailBody))
+	assert.NotNil(t, p)
+
+	req, err = http.NewRequest("POST", "/api"+string(p), nil)
+	assert.NoError(t, err)
+
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
+
+	req, err = http.NewRequest("GET", "/api/users/me", nil)
+	assert.NoError(t, err)
+
+	req.Header.Set("x-access-token", at)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
+
+	body2 := struct {
+		Uid         int       `json:"uid"`
+		Username    string    `json:"username"`
+		Email       string    `json:"email"`
+		DisplayName string    `json:"display_name"`
+		IsActive    bool      `json:"is_active"`
+		CreatedAt   time.Time `json:"created_at"`
+	}{}
+	err = json.Unmarshal(w.Body.Bytes(), &body2)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, body2.Uid)
+	assert.Equal(t, "tellmeyouremail@outlook.com", body2.Email)
+}

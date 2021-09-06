@@ -51,7 +51,7 @@ func SetEmailEditEmail(uid int, email string, code string) error {
 
 func GetEmailEditEmail(code string) (int, string, error) {
 	kv := getKv()
-	k := "user-active-email/" + code
+	k := "email-edit-email/" + code
 	v, err := kv.GetDel(context.Background(), k).Result()
 	if err != nil {
 		return 0, "", err

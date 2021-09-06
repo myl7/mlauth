@@ -2,27 +2,46 @@ package test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"mlauth/pkg/api"
+	"mlauth/pkg/srv"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
-func userLogin(t *testing.T, r *gin.Engine, username string, password string) (string, string) {
+var Router = api.Route()
+
+func reqApi(t *testing.T, method string, path string, body []byte, at *string) *httptest.ResponseRecorder {
+	req, err := http.NewRequest(method, path, bytes.NewReader(body))
+	assert.NoError(t, err)
+
+	if at != nil {
+		req.Header.Set("x-access-token", *at)
+	}
+
 	w := httptest.NewRecorder()
-	b, err := json.Marshal(gin.H{
+	Router.ServeHTTP(w, req)
+	return w
+}
+
+func serJson(t *testing.T, in interface{}) []byte {
+	b, err := json.Marshal(in)
+	assert.NoError(t, err)
+
+	return b
+}
+
+func userLogin(t *testing.T, username string, password string) (string, string) {
+	b := serJson(t, gin.H{
 		"username": username,
 		"password": password,
 	})
-	assert.NoError(t, err)
-
-	req, err := http.NewRequest("POST", "/api/users/login", bytes.NewReader(b))
-	assert.NoError(t, err)
-
-	r.ServeHTTP(w, req)
+	w := reqApi(t, "POST", "/api/users/login", b, nil)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body := struct {
@@ -30,7 +49,7 @@ func userLogin(t *testing.T, r *gin.Engine, username string, password string) (s
 		AccessToken string `json:"access_token"`
 		UpdateToken string `json:"update_token"`
 	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body)
+	err := json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
 	assert.Equal(t, body.Username, username)
 	assert.NotEqual(t, body.AccessToken, "")
@@ -39,18 +58,41 @@ func userLogin(t *testing.T, r *gin.Engine, username string, password string) (s
 	return body.AccessToken, body.UpdateToken
 }
 
-func getUserDetail(t *testing.T, r *gin.Engine, at string) api.UserDetail {
-	req, err := http.NewRequest("GET", "/api/users/me", nil)
-	assert.NoError(t, err)
-
-	req.Header.Set("x-access-token", at)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+func getUserDetail(t *testing.T, at string) api.UserDetail {
+	w := reqApi(t, "GET", "/api/users/me", nil, &at)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	body := api.UserDetail{}
-	err = json.Unmarshal(w.Body.Bytes(), &body)
+	err := json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
 
 	return body
+}
+
+func getEmailInfo(t *testing.T) (string, string) {
+	var email, emailBody string
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	select {
+	case email = <-srv.SendEmailMockChan:
+	case <-ctx.Done():
+		assert.NotEmpty(t, email, "Can not get email")
+	}
+	cancel()
+	ctx, cancel = context.WithTimeout(context.Background(), 1*time.Second)
+	select {
+	case emailBody = <-srv.SendEmailMockChan:
+	case <-ctx.Done():
+		assert.NotEmpty(t, emailBody, "Can not get email body")
+	}
+	cancel()
+	return email, emailBody
+}
+
+func ensureNoEmail(t *testing.T) {
+	select {
+	case <-srv.SendEmailMockChan:
+		<-srv.SendEmailMockChan
+		assert.NotNil(t, nil, "No email edit but triggers email sending")
+	default:
+	}
 }

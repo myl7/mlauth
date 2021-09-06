@@ -15,28 +15,26 @@ import (
 	"time"
 )
 
-func TestUserGet(t *testing.T) {
-	r := api.Route()
-	at, _ := userLogin(t, r, "testusername", "testpassword")
-	w := httptest.NewRecorder()
-
+func getUserDetail(t *testing.T, r *gin.Engine, at string) api.UserDetail {
 	req, err := http.NewRequest("GET", "/api/users/me", nil)
 	assert.NoError(t, err)
 
 	req.Header.Set("x-access-token", at)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
-	body := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
+	body := api.UserDetail{}
 	err = json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
+
+	return body
+}
+
+func TestUserGet(t *testing.T) {
+	r := api.Route()
+	at, _ := userLogin(t, r, "testusername", "testpassword")
+	body := getUserDetail(t, r, at)
 	assert.Equal(t, 1, body.Uid)
 	assert.Equal(t, "testusername", body.Username)
 	assert.Equal(t, "testemail@gmail.com", body.Email)
@@ -65,14 +63,7 @@ func TestUserRegister(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
-	body := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
+	body := api.UserDetail{}
 	err = json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
 	assert.Equal(t, "testU", body.Username)
@@ -110,25 +101,7 @@ func TestUserRegister(t *testing.T) {
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	at, _ := userLogin(t, r, "testU", "testPassYou")
-	w = httptest.NewRecorder()
-
-	req, err = http.NewRequest("GET", "/api/users/me", nil)
-	assert.NoError(t, err)
-
-	req.Header.Set("x-access-token", at)
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
-
-	body2 := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body2)
-	assert.NoError(t, err)
+	body2 := getUserDetail(t, r, at)
 	assert.Equal(t, body.Uid, body2.Uid)
 	assert.Equal(t, true, body2.IsActive)
 }
@@ -136,8 +109,13 @@ func TestUserRegister(t *testing.T) {
 func TestUserEditExceptEmail(t *testing.T) {
 	r := api.Route()
 	at, _ := userLogin(t, r, "anotherusername", "anotherpassword")
+	b, err := json.Marshal(gin.H{
+		"password":     "testPassYou",
+		"display_name": "符号看象限ラブライブ한국어",
+	})
+	assert.NoError(t, err)
 
-	req, err := http.NewRequest("GET", "/api/users/me", nil)
+	req, err := http.NewRequest("PUT", "/api/users/me", bytes.NewReader(b))
 	assert.NoError(t, err)
 
 	req.Header.Set("x-access-token", at)
@@ -145,44 +123,11 @@ func TestUserEditExceptEmail(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
-	body := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
+	body := api.UserDetail{}
 	err = json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, body.Uid)
-
-	b, err := json.Marshal(gin.H{
-		"password":     "testPassYou",
-		"display_name": "符号看象限ラブライブ한국어",
-	})
-	assert.NoError(t, err)
-
-	req, err = http.NewRequest("PUT", "/api/users/me", bytes.NewReader(b))
-	assert.NoError(t, err)
-
-	req.Header.Set("x-access-token", at)
-	w = httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
-
-	body2 := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body2)
-	assert.NoError(t, err)
-	assert.Equal(t, body.Uid, body2.Uid)
-	assert.Equal(t, "符号看象限ラブライブ한국어", body2.DisplayName)
+	assert.Equal(t, body.Uid, body.Uid)
+	assert.Equal(t, "符号看象限ラブライブ한국어", body.DisplayName)
 
 	select {
 	case <-srv.SendEmailMockChan:
@@ -192,13 +137,7 @@ func TestUserEditExceptEmail(t *testing.T) {
 	}
 
 	at, _ = userLogin(t, r, "anotherusername", "testPassYou")
-	req, err = http.NewRequest("GET", "/api/users/me", nil)
-	assert.NoError(t, err)
-
-	req.Header.Set("x-access-token", at)
-	w = httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
+	getUserDetail(t, r, at)
 }
 
 func TestUserEditEmail(t *testing.T) {
@@ -217,14 +156,7 @@ func TestUserEditEmail(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
-	body := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
+	body := api.UserDetail{}
 	err = json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, body.Uid)
@@ -258,24 +190,7 @@ func TestUserEditEmail(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
-	req, err = http.NewRequest("GET", "/api/users/me", nil)
-	assert.NoError(t, err)
-
-	req.Header.Set("x-access-token", at)
-	w = httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
-
-	body2 := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body2)
-	assert.NoError(t, err)
+	body2 := getUserDetail(t, r, at)
 	assert.Equal(t, 3, body2.Uid)
 	assert.Equal(t, "tellmeyouremail@outlook.com", body2.Email)
 }

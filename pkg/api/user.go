@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type userDetail struct {
+type UserDetail struct {
 	Uid         int       `json:"uid"`
 	Username    string    `json:"username"`
 	Email       string    `json:"email"`
@@ -21,7 +21,7 @@ type userDetail struct {
 
 func userGet(c *gin.Context) {
 	u := c.MustGet("user").(mdl.User)
-	res := userDetail{
+	res := UserDetail{
 		Uid:         u.Uid,
 		Username:    u.Username,
 		Email:       u.Email,
@@ -130,8 +130,8 @@ func userEdit(c *gin.Context) {
 	c.JSON(http.StatusOK, userMdl2userDetail(u))
 }
 
-func userMdl2userDetail(u mdl.User) userDetail {
-	return userDetail{
+func userMdl2userDetail(u mdl.User) UserDetail {
+	return UserDetail{
 		Uid:         u.Uid,
 		Username:    u.Username,
 		Email:       u.Email,

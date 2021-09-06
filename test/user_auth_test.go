@@ -120,23 +120,6 @@ func TestUserRecover(t *testing.T) {
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
 	at, _ := userLogin(t, r, "username4", "passwordRecover")
-	req, err = http.NewRequest("GET", "/api/users/me", nil)
-	assert.NoError(t, err)
-
-	req.Header.Set("x-access-token", at)
-	w = httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
-
-	body := struct {
-		Uid         int       `json:"uid"`
-		Username    string    `json:"username"`
-		Email       string    `json:"email"`
-		DisplayName string    `json:"display_name"`
-		IsActive    bool      `json:"is_active"`
-		CreatedAt   time.Time `json:"created_at"`
-	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body)
-	assert.NoError(t, err)
+	body := getUserDetail(t, r, at)
 	assert.Equal(t, 4, body.Uid)
 }

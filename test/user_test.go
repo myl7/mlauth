@@ -15,22 +15,6 @@ import (
 	"time"
 )
 
-func getUserDetail(t *testing.T, r *gin.Engine, at string) api.UserDetail {
-	req, err := http.NewRequest("GET", "/api/users/me", nil)
-	assert.NoError(t, err)
-
-	req.Header.Set("x-access-token", at)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
-
-	body := api.UserDetail{}
-	err = json.Unmarshal(w.Body.Bytes(), &body)
-	assert.NoError(t, err)
-
-	return body
-}
-
 func TestUserGet(t *testing.T) {
 	r := api.Route()
 	at, _ := userLogin(t, r, "testusername", "testpassword")

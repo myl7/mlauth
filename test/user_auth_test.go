@@ -15,34 +15,6 @@ import (
 	"time"
 )
 
-func userLogin(t *testing.T, r *gin.Engine, username string, password string) (string, string) {
-	w := httptest.NewRecorder()
-	b, err := json.Marshal(gin.H{
-		"username": username,
-		"password": password,
-	})
-	assert.NoError(t, err)
-
-	req, err := http.NewRequest("POST", "/api/users/login", bytes.NewReader(b))
-	assert.NoError(t, err)
-
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
-
-	body := struct {
-		Username    string `json:"username"`
-		AccessToken string `json:"access_token"`
-		UpdateToken string `json:"update_token"`
-	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body)
-	assert.NoError(t, err)
-	assert.Equal(t, body.Username, username)
-	assert.NotEqual(t, body.AccessToken, "")
-	assert.NotEqual(t, body.UpdateToken, "")
-
-	return body.AccessToken, body.UpdateToken
-}
-
 func TestUserLogin(t *testing.T) {
 	r := api.Route()
 	_, _ = userLogin(t, r, "testusername", "testpassword")

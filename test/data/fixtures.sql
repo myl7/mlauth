@@ -7,6 +7,8 @@ VALUES (1, 'testusername', '$2a$12$0Ew1ypxmezSM0YV9TQJe8.kygAS8XFGBYvnCXkVv.mi3v
         'anotheremail@mail.ustc.edu.cn', 'test display name', TRUE, FALSE,
         '2021-07-08 00:00:00'),
        (3, 'username3', '$2a$12$08blyfUu0siB40qhslSNrujccQi3Xg0qd4NeBYQkcuzYoYB1v/jfu', 'hello@qq.com', 'User 3', TRUE,
-        FALSE, '2020-01-01 01:02:03');
+        FALSE, '2020-01-01 01:02:03'),
+       (4, 'username4', '$2a$12$3RtJx7XVK6lenf1ThRAWxO05t/eu7xjS4LOF8TApNfNKl0PwbsxsC', 'user4@128.com', 'User4', TRUE,
+        FALSE, '2021-07-08 00:00:00');
 SELECT pg_catalog.SETVAL(PG_GET_SERIAL_SEQUENCE('users', 'uid'), MAX(uid))
 FROM users;

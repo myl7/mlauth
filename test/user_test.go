@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"mlauth/pkg/api"
 	"mlauth/pkg/srv"
 	"net/http"
@@ -87,14 +86,14 @@ func TestUserRegister(t *testing.T) {
 	select {
 	case email = <-srv.SendEmailMockChan:
 	case <-ctx.Done():
-		log.Println("Can not get email")
+		assert.NotEmpty(t, email, "Can not get email")
 	}
 	cancel()
 	ctx, cancel = context.WithTimeout(context.Background(), 1*time.Second)
 	select {
 	case emailBody = <-srv.SendEmailMockChan:
 	case <-ctx.Done():
-		log.Println("Can not get email body")
+		assert.NotEmpty(t, emailBody, "Can not get email body")
 	}
 	cancel()
 	assert.Equal(t, "testE@outlook.com", email)
@@ -132,4 +131,72 @@ func TestUserRegister(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, body.Uid, body2.Uid)
 	assert.Equal(t, true, body2.IsActive)
+}
+
+func TestUserEditExceptEmail(t *testing.T) {
+	r := api.Route()
+	at, _ := userLogin(t, r, "anotherusername", "anotherpassword")
+
+	req, err := http.NewRequest("GET", "/api/users/me", nil)
+	assert.NoError(t, err)
+
+	req.Header.Set("x-access-token", at)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
+
+	body := struct {
+		Uid         int       `json:"uid"`
+		Username    string    `json:"username"`
+		Email       string    `json:"email"`
+		DisplayName string    `json:"display_name"`
+		IsActive    bool      `json:"is_active"`
+		CreatedAt   time.Time `json:"created_at"`
+	}{}
+	err = json.Unmarshal(w.Body.Bytes(), &body)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, body.Uid)
+
+	b, err := json.Marshal(gin.H{
+		"password":     "testPassYou",
+		"display_name": "符号看象限ラブライブ한국어",
+	})
+	assert.NoError(t, err)
+
+	req, err = http.NewRequest("PUT", "/api/users/me", bytes.NewReader(b))
+	assert.NoError(t, err)
+
+	req.Header.Set("x-access-token", at)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
+
+	body2 := struct {
+		Uid         int       `json:"uid"`
+		Username    string    `json:"username"`
+		Email       string    `json:"email"`
+		DisplayName string    `json:"display_name"`
+		IsActive    bool      `json:"is_active"`
+		CreatedAt   time.Time `json:"created_at"`
+	}{}
+	err = json.Unmarshal(w.Body.Bytes(), &body2)
+	assert.NoError(t, err)
+	assert.Equal(t, body.Uid, body2.Uid)
+	assert.Equal(t, "符号看象限ラブライブ한국어", body2.DisplayName)
+
+	select {
+	case <-srv.SendEmailMockChan:
+		<-srv.SendEmailMockChan
+		assert.NotNil(t, nil, "No email edit but triggers email sending")
+	default:
+	}
+
+	at, _ = userLogin(t, r, "anotherusername", "testPassYou")
+	req, err = http.NewRequest("GET", "/api/users/me", nil)
+	assert.NoError(t, err)
+
+	req.Header.Set("x-access-token", at)
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 }

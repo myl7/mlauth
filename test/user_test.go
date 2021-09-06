@@ -18,7 +18,7 @@ import (
 
 func TestUserGet(t *testing.T) {
 	r := api.Route()
-	at, _ := userLogin(t, r)
+	at, _ := userLogin(t, r, "testusername", "testpassword")
 	w := httptest.NewRecorder()
 
 	req, err := http.NewRequest("GET", "/api/users/me", nil)
@@ -110,34 +110,7 @@ func TestUserRegister(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
-	req, err = http.NewRequest("GET", "/api/users/me", nil)
-	assert.NoError(t, err)
-
-	w = httptest.NewRecorder()
-	b, err = json.Marshal(gin.H{
-		"username": "testU",
-		"password": "testPassYou",
-	})
-	assert.NoError(t, err)
-
-	req, err = http.NewRequest("POST", "/api/users/login", bytes.NewReader(b))
-	assert.NoError(t, err)
-
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
-
-	body2 := struct {
-		Username    string `json:"username"`
-		AccessToken string `json:"access_token"`
-		UpdateToken string `json:"update_token"`
-	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body2)
-	assert.NoError(t, err)
-	assert.Equal(t, body2.Username, "testU")
-	assert.NotEqual(t, body2.AccessToken, "")
-	assert.NotEqual(t, body2.UpdateToken, "")
-
-	at := body2.AccessToken
+	at, _ := userLogin(t, r, "testU", "testPassYou")
 	w = httptest.NewRecorder()
 
 	req, err = http.NewRequest("GET", "/api/users/me", nil)
@@ -147,7 +120,7 @@ func TestUserRegister(t *testing.T) {
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code, "body: %s", w.Body.String())
 
-	body3 := struct {
+	body2 := struct {
 		Uid         int       `json:"uid"`
 		Username    string    `json:"username"`
 		Email       string    `json:"email"`
@@ -155,8 +128,8 @@ func TestUserRegister(t *testing.T) {
 		IsActive    bool      `json:"is_active"`
 		CreatedAt   time.Time `json:"created_at"`
 	}{}
-	err = json.Unmarshal(w.Body.Bytes(), &body3)
+	err = json.Unmarshal(w.Body.Bytes(), &body2)
 	assert.NoError(t, err)
-	assert.Equal(t, body.Uid, body3.Uid)
-	assert.Equal(t, true, body3.IsActive)
+	assert.Equal(t, body.Uid, body2.Uid)
+	assert.Equal(t, true, body2.IsActive)
 }

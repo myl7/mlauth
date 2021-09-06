@@ -11,11 +11,11 @@ import (
 	"testing"
 )
 
-func userLogin(t *testing.T, r *gin.Engine) (string, string) {
+func userLogin(t *testing.T, r *gin.Engine, username string, password string) (string, string) {
 	w := httptest.NewRecorder()
 	b, err := json.Marshal(gin.H{
-		"username": "testusername",
-		"password": "testpassword",
+		"username": username,
+		"password": password,
 	})
 	assert.NoError(t, err)
 
@@ -32,7 +32,7 @@ func userLogin(t *testing.T, r *gin.Engine) (string, string) {
 	}{}
 	err = json.Unmarshal(w.Body.Bytes(), &body)
 	assert.NoError(t, err)
-	assert.Equal(t, body.Username, "testusername")
+	assert.Equal(t, body.Username, username)
 	assert.NotEqual(t, body.AccessToken, "")
 	assert.NotEqual(t, body.UpdateToken, "")
 
@@ -41,12 +41,12 @@ func userLogin(t *testing.T, r *gin.Engine) (string, string) {
 
 func TestUserLogin(t *testing.T) {
 	r := api.Route()
-	_, _ = userLogin(t, r)
+	_, _ = userLogin(t, r, "testusername", "testpassword")
 }
 
 func TestUserRenew(t *testing.T) {
 	r := api.Route()
-	_, ut := userLogin(t, r)
+	_, ut := userLogin(t, r, "testusername", "testpassword")
 	w := httptest.NewRecorder()
 	b, err := json.Marshal(gin.H{
 		"update_token": ut,

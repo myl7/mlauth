@@ -67,6 +67,10 @@ func GetEmailEditEmail(code string) (int, string, error) {
 }
 
 func SetEmailRetry(sub string, uid int) error {
+	if conf.EmailRetryInterval == 0 {
+		return nil
+	}
+
 	kv := getKv()
 	k := fmt.Sprintf("email-retry/%s/%d", sub, uid)
 	err := kv.Set(context.Background(), k, "1", time.Duration(conf.EmailRetryInterval)*time.Second).Err()
@@ -78,6 +82,10 @@ func SetEmailRetry(sub string, uid int) error {
 }
 
 func CheckEmailRetry(sub string, uid int) bool {
+	if conf.EmailRetryInterval == 0 {
+		return true
+	}
+
 	kv := getKv()
 	k := fmt.Sprintf("email-retry/%s/%d", sub, uid)
 	err := kv.Get(context.Background(), k).Err()
